@@ -1,0 +1,44 @@
+services:
+  app:
+    build: .
+    container_name: habita-api
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app           # Mapeia o código local dentro do container
+      - /app/node_modules # Evita conflito dos node_modules locais
+    environment:
+      - NODE_ENV=development
+    depends_on:
+      - db
+    command: >
+      sh -c "cd prisma && npx prisma generate && cd .. && npm run start:dev"
+  db:
+      image: postgres:18
+      container_name: habita-db
+      restart: always
+      environment:
+        POSTGRES_USER: ${POSTGRES_USER}
+        POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+        POSTGRES_DB: ${POSTGRES_DB}
+      ports:
+        - "5432:5432"
+      volumes:
+        - pgdata:/var/lib/postgresql
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: habita-pgadmin
+    restart: always
+    depends_on:
+      - db
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=${PGADMIN_DEFAULT_EMAIL}
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_DEFAULT_PASSWORD}
+    ports:
+      - "${PGADMIN_LISTEN_PORT}:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+
+volumes:
+  pgdata:
+  pgadmin_data:
